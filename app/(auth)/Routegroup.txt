@@ -1,0 +1,6 @@
+Adding the (parentheses) around the 'auth' folder name, this route groups and tells next not to add 'auth' to the path of the things inside
+
+Any other sign up/login folders in the main app directory would clash with it
+
+
+This can help with layouts for particular route groups
