@@ -5,7 +5,7 @@ import { NextResponse } from "next/server"
 export const dynamic = 'force-dynamic'
 // would force every route handler in this file to be dynamic and not static. It'd re run from scratch on server each time a request comes in
 
-export async function GET(request, { params }) {
+export async function GET( request, { params }) {
 
     const id = params.id
 

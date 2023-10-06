@@ -6,39 +6,43 @@
 
 // Route handlers can be static & dynamic. Static are cached at build time and during dev. Dynamic are not and are run seperately on every request
 
-import { NextResponse } from "next/server"
+// Arrow function not working with GET requests for some reason
 
-// Arrow function not working for some reason
+
+import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
+import { NextResponse } from "next/server"
+import { cookies } from 'next/headers'
+
 
 export const dynamic = 'force-dynamic'
 // would force every route handler in this file to be dynamic and not static. It'd re run from scratch on server each time a request comes in
 
-export async function GET() {
-    const res = await fetch('http://localhost:4000/tickets')
 
-    const tickets = await res.json()
-
-    return NextResponse.json(tickets, {
-        status: 200
-    })
-}
-
-//we have GET request handler, fetch data inside that, and return a NextResponse where we send some json datw which is the tickets and set the status of the response. Status 200: OK
-
-
-//post request has a request body, which is the data to be posted and it is recieved in the function argument. On it we can get access to the Json sent with the post request
 export async function POST(request) {
 
     const ticket = await request.json()
 
-    const res = await fetch('http://localhost:4000/tickets', {
-        method: "POST",
-        headers: { "Content-Type": "application/json" }, //basically saying the data being sent is json data
-        body: JSON.stringify(ticket) //this is the actual data being sent. Stringify passes/converts it in as a string
-    })
+    // get supabase instance
+    const supabase = createRouteHandlerClient({ cookies })
 
-    const newTicket = await res.json()
+    // get current user session
+    const { data: { session } } = await supabase.auth.getSession()
 
-    return NextResponse.json(newTicket, { status: 201 })
-    //with postman, request body is raw json
+    // insert the data
+    const { data, error } = await supabase.from('tickets')
+        .insert({
+            ...ticket,
+            user_email: session.user.email,
+        })
+        .select()
+        .single()
+    return NextResponse.json({ data, error })
+
+    //.from is a function using tables in database. Means getting something from a particular database table
+    //this is how we insert a new object or record into the table 
+    // .select()--so we get the data back
+    // .single()--so it's not in array format and comes back as a json object
+
+
 }
+

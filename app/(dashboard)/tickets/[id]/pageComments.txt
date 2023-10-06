@@ -1,0 +1,23 @@
+//for dynamic metadata
+// export async function generateMetadata({ params }) {
+//     const id = params.id
+
+//     const res = await fetch(`http://localhost:4000/tickets/${id}`) //forward slash whatever id of the page
+//     const ticket = await res.json() //this returns the full object of whatever the ticket's details are
+//     return {
+//         title: `Dojo Helpdesk | ${ticket.title}`
+//     }
+// }
+
+
+// export async function generateStaticParams() {
+//     const res = await fetch('http://localhost:4000/tickets')
+
+//     const tickets = await res.json()
+
+//     return tickets.map((ticket) => ({
+//         id: ticket.id
+//     }))
+//     //would make all the routes an pages ahead of time
+//     //get a list of all of the ids for all tickets at build time so next makes a page and a corresponding route for each one.
+// }

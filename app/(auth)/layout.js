@@ -1,6 +1,19 @@
 import Link from "next/link";
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
-const AuthLayout = ({ children }) => {
+
+const AuthLayout = async ({ children }) => {
+
+    const supabase = createServerComponentClient({ cookies })
+    const { data } = await supabase.auth.getSession() //to get us the current session and extract the data property that has the user in it.
+
+    if (data.session) {
+        redirect('/')
+    }
+    //Route protecing the login page, so if they are already logged in and somehow get there, then they'd get yeeted back to the dashboard 
+
     return (
         <>
             <nav>

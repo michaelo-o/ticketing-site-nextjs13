@@ -1,50 +1,58 @@
-import { notFound } from "next/navigation" //must be there for the notFound tot work
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
+import { cookies } from "next/headers"
+import { notFound } from "next/navigation" //must be there for the notFound to work
 
-export const dynamicParams = true //tells next to return 404 page if a user tries to land on a ticcket page that has an id different from any of the pages it's already made
+export const dynamicParams = true //tells next to return 404 page if a user tries to land on a ticket page that has an id different from any of the pages it's already made
 // true= makes it so in case of new tickets that don't already have pages, next is gonna try and fetch data for the ticket and create a page in case it exists.  Once that is done once, it can generate a static page for future requests
 
-//for dynamic metadata
+
 export async function generateMetadata({ params }) {
-    const id = params.id
+    const supabase = createServerComponentClient({ cookies })
 
-    const res = await fetch(`http://localhost:4000/tickets/${id}`) //forward slash whatever id of the page
-    const ticket = await res.json() //this returns the full object of whatever the ticket's details are
+    const { data: ticket } = await supabase.from('tickets')
+        .select()
+        .eq('id', params.id)
+        .single()
+
     return {
-        title: `Dojo Helpdesk | ${ticket.title}`
+        title: `Dojo Helpdesk | ${ticket?.title || 'Ticket not Found'}`
     }
-}
-
-
-export async function generateStaticParams() {
-    const res = await fetch('http://localhost:4000/tickets')
-
-    const tickets = await res.json()
-
-    return tickets.map((ticket) => ({
-        id: ticket.id
-    }))
-    //would make all the routes an pages ahead of time
-    //get a list of all of the ids for all tickets at build time so next makes a page and a corresponding route for each one.
+    //the ? is to check for a value for ticket in case there's no value do it does not search for a title on null
+    //eq() --selecting based on certain criteria. Where the two arguments are equal, grab that one and the .single is so it would not return an array
 }
 
 
 async function getTicket(id) {
-    // //imitate 3 second delay
-    // await new Promise(resolve => setTimeout(resolve, 3000))
 
-    const res = await fetch('http://localhost:4000/tickets/' + id, {
-        next: {
-            revalidate: 60
-            //how long next should wait since last page visit before revalidating data/refetching so once another request comes in, it shows revalidated data
-            //make it 0 to opt out of using the cached data
-        }
-    })
+    const supabase = createServerComponentClient({ cookies })
 
-    if (!res.ok) {
+    const { data } = await supabase.from('tickets')
+        .select()
+        .eq('id', id) //selecting based on certain criteria. Where the two arguments are equal, grab that one and the .single is so it would not return an array
+        .single()
+
+    if (!data) {
         notFound()
     }
 
-    return res.json()
+    return data
+
+    // //imitate 3 second delay
+    // await new Promise(resolve => setTimeout(resolve, 3000))
+
+    // const res = await fetch('http://localhost:4000/tickets/' + id, {
+    //     next: {
+    //         revalidate: 60
+    //         //how long next should wait since last page visit before revalidating data/refetching so once another request comes in, it shows revalidated data
+    //         //make it 0 to opt out of using the cached data
+    //     }
+    // })
+
+    // if (!res.ok) {
+    //     notFound()
+    // }
+
+    // return res.json()
 
 }
 const TicketDetails = async ({ params }) => {

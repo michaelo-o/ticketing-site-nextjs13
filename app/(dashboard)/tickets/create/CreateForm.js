@@ -18,21 +18,30 @@ const CreateForm = () => {
         e.preventDefault()
         setIsLoading(true)
 
-        const ticket = {
-            title, body, priority, user_email: 'test@test.dev'
-        }
+        const newTicket = { title, body, priority };
 
         //post request so server adds new data
-        const res = await fetch('http://localhost:4000/tickets', {
+        const res = await fetch('http://localhost:3000/api/tickets', {
             method: "POST",
             headers: { "Content-Type": "application/json" }, //basically saying the data being sent is json data
-            body: JSON.stringify(ticket) //this is the actual data being sent. Stringify passes/converts it in as a string
+            body: JSON.stringify(newTicket) //this is the actual data being sent. Stringify passes/converts it in as a string
         })
-        if (res.status === 201) { //201-good response, resource created
-            router.refresh()
-            router.push('/tickets')
+
+        // if (res.status === 201) { //201-good response, resource created
+        //     router.refresh()
+        //     router.push('/tickets')
+        // }
+
+        const json = await res.json();
+
+        if (json.error) {
+            console.log(error.message)
         }
 
+        if (json.data) {
+            router.refresh() //to refresh the page in the backgroud
+            router.push('/tickets')
+        }
     }
 
     return (
